@@ -1,9 +1,9 @@
-
 import React from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import StatCard from '@/components/stats/StatCard';
 import StatChart from '@/components/stats/StatChart';
+import VideoHighlights from '@/components/videos/VideoHighlights';
 import { 
   Trophy, 
   Users, 
@@ -111,6 +111,11 @@ const Dashboard = () => {
               dataKeys={['possession', 'opponentPossession']}
               colors={['hsl(var(--primary))', '#94a3b8']}
             />
+          </div>
+          
+          {/* Video Highlights section */}
+          <div className="mb-8">
+            <VideoHighlights />
           </div>
           
           {/* Recent matches */}
