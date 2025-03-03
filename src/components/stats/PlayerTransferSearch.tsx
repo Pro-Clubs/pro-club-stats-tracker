@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Filter, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Search, Filter, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { playerTransfersData } from '@/lib/statsData';
+import { toast } from 'sonner';
 
 interface PlayerTransferSearchProps {
   onPlayerSelect?: (playerId: number) => void;
@@ -20,7 +21,7 @@ interface PlayerTransferSearchProps {
 
 const PlayerTransferSearch: React.FC<PlayerTransferSearchProps> = ({ onPlayerSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [positionFilter, setPositionFilter] = useState('');
+  const [positionFilter, setPositionFilter] = useState('all'); // Changed from empty string to 'all'
   const [viewHistory, setViewHistory] = useState(false);
   
   const filteredPlayers = playerTransfersData.filter(player => {
@@ -28,10 +29,17 @@ const PlayerTransferSearch: React.FC<PlayerTransferSearchProps> = ({ onPlayerSel
                          player.currentTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          player.previousTeam.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesPosition = positionFilter === '' || player.position === positionFilter;
+    const matchesPosition = positionFilter === 'all' || player.position === positionFilter; // Updated condition
     
     return matchesSearch && matchesPosition;
   });
+
+  const handlePlayerSelect = (playerId: number) => {
+    if (onPlayerSelect) {
+      onPlayerSelect(playerId);
+      toast.success("Player selected successfully");
+    }
+  };
 
   return (
     <Card className="p-6 bg-card rounded-xl border border-border shadow-sm">
@@ -66,7 +74,7 @@ const PlayerTransferSearch: React.FC<PlayerTransferSearchProps> = ({ onPlayerSel
               <SelectValue placeholder="Position" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Positions</SelectItem>
+              <SelectItem value="all">All Positions</SelectItem>
               <SelectItem value="GK">Goalkeeper</SelectItem>
               <SelectItem value="CB">Center Back</SelectItem>
               <SelectItem value="LB">Left Back</SelectItem>
@@ -95,7 +103,7 @@ const PlayerTransferSearch: React.FC<PlayerTransferSearchProps> = ({ onPlayerSel
               <div 
                 key={player.id}
                 className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-lg border border-border bg-card/50 hover:bg-muted/30 transition-colors cursor-pointer"
-                onClick={() => onPlayerSelect && onPlayerSelect(player.id)}
+                onClick={() => handlePlayerSelect(player.id)}
               >
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                   <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
