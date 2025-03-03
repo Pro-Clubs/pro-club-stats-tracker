@@ -5,7 +5,6 @@ import Footer from '@/components/layout/Footer';
 import StatCard from '@/components/stats/StatCard';
 import StatChart from '@/components/stats/StatChart';
 import PlayerTransferSearch from '@/components/stats/PlayerTransferSearch';
-import PlayerAttributesModal from '@/components/stats/PlayerAttributesModal';
 import { playerStatsData, performanceTrendsData } from '@/lib/statsData';
 import { Search, Trophy, Star, BarChart3, ListFilter } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const PlayerStats = () => {
   const [selectedPlayer, setSelectedPlayer] = useState(playerStatsData[0]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [attributesModalOpen, setAttributesModalOpen] = useState(false);
   
   const filteredPlayers = playerStatsData.filter(player => 
     player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -150,10 +148,7 @@ const PlayerStats = () => {
                               </span>
                             </div>
                             <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4">
-                              <button 
-                                className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                                onClick={() => setAttributesModalOpen(true)}
-                              >
+                              <button className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
                                 Full Profile
                               </button>
                               <button className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
@@ -210,13 +205,6 @@ const PlayerStats = () => {
         </div>
       </main>
       <Footer />
-      
-      {/* Player Attributes Modal */}
-      <PlayerAttributesModal 
-        player={selectedPlayer}
-        open={attributesModalOpen}
-        onOpenChange={setAttributesModalOpen}
-      />
     </div>
   );
 };
