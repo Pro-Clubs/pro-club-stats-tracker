@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import StatCard from '@/components/stats/StatCard';
 import StatChart from '@/components/stats/StatChart';
 import VideoHighlights from '@/components/videos/VideoHighlights';
+import { useToast } from "@/hooks/use-toast";
 import { 
   Trophy, 
   Users, 
-  TrendingUp, 
   BarChart,
-  Calendar,
-  Award
+  Award,
+  Loader2,
+  UserCheck,
+  Calendar
 } from 'lucide-react';
 import { 
   recentMatchesData, 
@@ -19,8 +21,52 @@ import {
   possessionByMatchData,
   playerStatsData
 } from '@/lib/statsData';
+import { fetchDashboardData, DashboardData } from "@/lib/api";
+import { format } from 'date-fns';
 
 const Dashboard = () => {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      setIsLoading(true);
+      
+      try {
+        console.log("Fetching dashboard data...");
+        // Added a slight delay to ensure the UI renders properly
+        const data = await fetchDashboardData();
+        console.log("Dashboard data received:", data);
+        
+        if (!data || typeof data !== 'object') {
+          console.error("Invalid dashboard data received:", data);
+          setHasError(true);
+        } else {
+          setDashboardData(data);
+          setHasError(false);
+        }
+      } catch (error) {
+        console.error("Dashboard data fetch error:", error);
+        setHasError(true);
+        let message = "Failed to load dashboard data";
+        if (error instanceof Error) {
+          message = error.message;
+        }
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: message,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [toast]);
+  
   // Calculate aggregated stats from the sample data
   const totalMatches = recentMatchesData.length;
   const wins = recentMatchesData.filter(match => match.result === 'Win').length;
@@ -45,6 +91,95 @@ const Dashboard = () => {
               </button>
             </div>
           </div>
+          
+          {/* API Data Summary */}
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10 mb-8 bg-card rounded-xl border border-border shadow-sm">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <span className="ml-3 text-lg font-medium">Loading dashboard data...</span>
+            </div>
+          ) : dashboardData && dashboardData.stats && (
+            <div className="mb-8 p-6 bg-card rounded-xl border border-border shadow-sm">
+              <h2 className="text-xl font-semibold mb-4">Pro Club Stats API Data</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
+                <StatCard 
+                  title="Total Clubs" 
+                  value={dashboardData.stats.total_clubs || 0}
+                  description="Registered clubs"
+                  icon={<Trophy className="h-6 w-6 text-primary" />}
+                  trend="neutral"
+                />
+                <StatCard 
+                  title="Total Players" 
+                  value={dashboardData.stats.total_players || 0}
+                  description="All registered players"
+                  icon={<Users className="h-6 w-6 text-primary" />}
+                  trend="neutral"
+                />
+                <StatCard 
+                  title="Total Goals" 
+                  value={dashboardData.stats.total_goals || 0}
+                  description="All time goals"
+                  icon={<BarChart className="h-6 w-6 text-primary" />}
+                  trend="neutral"
+                />
+                <StatCard 
+                  title="Total Users" 
+                  value={dashboardData.stats.total_users || 0}
+                  description="Registered users"
+                  icon={<UserCheck className="h-6 w-6 text-primary" />}
+                  trend="neutral"
+                />
+              </div>
+              
+              {dashboardData.stats.player_of_the_week && (
+                <div className="mt-6 p-4 border rounded-lg bg-primary/5">
+                  <h3 className="text-lg font-medium mb-2">Player of the Week</h3>
+                  <div className="flex flex-wrap gap-x-8 gap-y-3">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Name:</span>
+                      <p className="font-medium">{dashboardData.stats.player_of_the_week.name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Position:</span>
+                      <p className="font-medium">{dashboardData.stats.player_of_the_week.position || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Rating:</span>
+                      <p className="font-medium">{dashboardData.stats.player_of_the_week.rating || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Goals:</span>
+                      <p className="font-medium">{dashboardData.stats.player_of_the_week.goals || 0}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Assists:</span>
+                      <p className="font-medium">{dashboardData.stats.player_of_the_week.assists || 0}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Club:</span>
+                      <p className="font-medium">{dashboardData.stats.player_of_the_week.club_name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Platform:</span>
+                      <p className="font-medium">{dashboardData.stats.player_of_the_week.platform || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {dashboardData.user && (
+                <div className="mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Logged in as: <span className="font-medium">{dashboardData.user.email || 'Unknown'}</span>
+                    {dashboardData.user.last_login_at && (
+                      <> | Last login: {new Date(dashboardData.user.last_login_at).toLocaleString()}</>
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
           
           {/* Key stats overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -127,6 +262,30 @@ const Dashboard = () => {
                   View All
                 </button>
               </div>
+              
+              {/* Recent Form Bar */}
+              {console.log("dashboardData in Recent Form section:", dashboardData)}
+              {dashboardData && dashboardData.recent && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Recent Form</p>
+                  <div className="flex space-x-1.5">
+                    {dashboardData.recent.map((result, index) => {
+                      const resultColor = 
+                        result === 'W' ? 'bg-emerald-500' :
+                        result === 'L' ? 'bg-rose-500' : 'bg-amber-500';
+                      
+                      return (
+                        <span 
+                          key={index}
+                          className={`${resultColor} min-w-7 h-7 flex items-center justify-center text-white font-medium rounded-md`}
+                        >
+                          {result}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="overflow-x-auto">

@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Menu, X, ChevronRight } from 'lucide-react';
+import { Menu, X, ChevronRight, LogOut } from 'lucide-react';
+import { useAuthStore } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { name: 'Dashboard', path: '/dashboard' },
@@ -14,6 +16,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +26,11 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <header 
@@ -46,7 +54,7 @@ const Header = () => {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          {navItems.map((item) => (
+          {isAuthenticated && navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
@@ -67,13 +75,24 @@ const Header = () => {
             </Link>
           ))}
           
-          <Link 
-            to="/dashboard" 
-            className="btn-primary flex items-center gap-2 group"
-          >
-            <span>Get Started</span>
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          {isAuthenticated ? (
+            <Button 
+              variant="outline"
+              onClick={handleLogout}
+              className="flex items-center gap-1"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              Logout
+            </Button>
+          ) : (
+            <Link 
+              to="/login" 
+              className="btn-primary flex items-center gap-2 group"
+            >
+              <span>Login</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          )}
         </nav>
         
         {/* Mobile menu button */}
@@ -94,7 +113,7 @@ const Header = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-background border-t border-border animate-fade-in">
           <div className="container mx-auto py-4 px-4 flex flex-col space-y-4">
-            {navItems.map((item) => (
+            {isAuthenticated && navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -110,13 +129,24 @@ const Header = () => {
               </Link>
             ))}
             
-            <Link 
-              to="/dashboard" 
-              className="btn-primary flex items-center justify-center"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Get Started
-            </Link>
+            {isAuthenticated ? (
+              <Button 
+                variant="outline"
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Logout
+              </Button>
+            ) : (
+              <Link 
+                to="/login" 
+                className="btn-primary flex items-center justify-center"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       )}
