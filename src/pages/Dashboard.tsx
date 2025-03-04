@@ -12,7 +12,8 @@ import {
   Award,
   Loader2,
   UserCheck,
-  Calendar
+  Calendar,
+  AlertCircle
 } from 'lucide-react';
 import { 
   recentMatchesData, 
@@ -21,13 +22,14 @@ import {
   possessionByMatchData,
   playerStatsData
 } from '@/lib/statsData';
-import { fetchDashboardData, DashboardData } from "@/lib/api";
+import { fetchDashboardData } from "@/lib/api";
 import { format } from 'date-fns';
 
 const Dashboard = () => {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [apiResponse, setApiResponse] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -45,6 +47,7 @@ const Dashboard = () => {
           setHasError(true);
         } else {
           setDashboardData(data);
+          setApiResponse(JSON.stringify(data, null, 2));
           setHasError(false);
         }
       } catch (error) {
@@ -75,6 +78,7 @@ const Dashboard = () => {
   const totalGoals = playerStatsData.reduce((sum, player) => sum + player.goals, 0);
   const avgRating = (playerStatsData.reduce((sum, player) => sum + player.rating, 0) / playerStatsData.length).toFixed(1);
   
+  // @ts-ignore
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -98,77 +102,24 @@ const Dashboard = () => {
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <span className="ml-3 text-lg font-medium">Loading dashboard data...</span>
             </div>
-          ) : dashboardData && dashboardData.stats && (
+          ) : hasError ? (
             <div className="mb-8 p-6 bg-card rounded-xl border border-border shadow-sm">
-              <h2 className="text-xl font-semibold mb-4">Pro Club Stats API Data</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
-                <StatCard 
-                  title="Total Clubs" 
-                  value={dashboardData.stats.total_clubs || 0}
-                  description="Registered clubs"
-                  icon={<Trophy className="h-6 w-6 text-primary" />}
-                  trend="neutral"
-                />
-                <StatCard 
-                  title="Total Players" 
-                  value={dashboardData.stats.total_players || 0}
-                  description="All registered players"
-                  icon={<Users className="h-6 w-6 text-primary" />}
-                  trend="neutral"
-                />
-                <StatCard 
-                  title="Total Goals" 
-                  value={dashboardData.stats.total_goals || 0}
-                  description="All time goals"
-                  icon={<BarChart className="h-6 w-6 text-primary" />}
-                  trend="neutral"
-                />
-                <StatCard 
-                  title="Total Users" 
-                  value={dashboardData.stats.total_users || 0}
-                  description="Registered users"
-                  icon={<UserCheck className="h-6 w-6 text-primary" />}
-                  trend="neutral"
-                />
+              <div className="flex items-center text-red-500 mb-4">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                <h2 className="text-xl font-semibold">Unable to load API data</h2>
               </div>
-              
-              {dashboardData.stats.player_of_the_week && (
-                <div className="mt-6 p-4 border rounded-lg bg-primary/5">
-                  <h3 className="text-lg font-medium mb-2">Player of the Week</h3>
-                  <div className="flex flex-wrap gap-x-8 gap-y-3">
-                    <div>
-                      <span className="text-sm text-muted-foreground">Name:</span>
-                      <p className="font-medium">{dashboardData.stats.player_of_the_week.name || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Position:</span>
-                      <p className="font-medium">{dashboardData.stats.player_of_the_week.position || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Rating:</span>
-                      <p className="font-medium">{dashboardData.stats.player_of_the_week.rating || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Goals:</span>
-                      <p className="font-medium">{dashboardData.stats.player_of_the_week.goals || 0}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Assists:</span>
-                      <p className="font-medium">{dashboardData.stats.player_of_the_week.assists || 0}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Club:</span>
-                      <p className="font-medium">{dashboardData.stats.player_of_the_week.club_name || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Platform:</span>
-                      <p className="font-medium">{dashboardData.stats.player_of_the_week.platform || 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {dashboardData.user && (
+              <p>There was a problem fetching data from the Pro Club Stats API.</p>
+            </div>
+          ) : (
+            <div className="mb-8 p-6 bg-card rounded-xl border border-border shadow-sm">
+              <h2 className="text-xl font-semibold mb-4">Pro Club Stats API Response</h2>
+
+              {/* Display the full API response */}
+              <div className="mt-4 p-4 bg-black/5 rounded-md overflow-auto max-h-[600px]">
+                <pre className="text-xs">{apiResponse || "No data received from API"}</pre>
+              </div>
+
+              {dashboardData && dashboardData.user && (
                 <div className="mt-4">
                   <p className="text-sm text-muted-foreground">
                     Logged in as: <span className="font-medium">{dashboardData.user.email || 'Unknown'}</span>
@@ -253,80 +204,93 @@ const Dashboard = () => {
             <VideoHighlights />
           </div>
           
-          {/* Recent matches */}
-          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-border">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Recent Matches</h2>
-                <button className="text-primary text-sm font-medium hover:underline">
-                  View All
-                </button>
+          {/* Recent matches - Only show when data is loaded */}
+          {!isLoading && (
+            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-border">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">Recent Matches</h2>
+                  <button className="text-primary text-sm font-medium hover:underline">
+                    View All
+                  </button>
+                </div>
+
+                {/* Recent Form Bar - Only show if data exists */}
+                {dashboardData && dashboardData.recent ? (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Recent Form</p>
+                    <div className="flex space-x-1.5">
+                      {dashboardData.recent.map((result, index) => {
+                        const resultColor =
+                          result === 'W' ? 'bg-emerald-500' :
+                          result === 'L' ? 'bg-rose-500' : 'bg-amber-500';
+
+                        return (
+                          <span
+                            key={index}
+                            className={`${resultColor} min-w-7 h-7 flex items-center justify-center text-white font-medium rounded-md`}
+                          >
+                            {result}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <p className="text-sm text-muted-foreground">Waiting for recent match data...</p>
+                  </div>
+                )}
               </div>
               
-              {/* Recent Form Bar */}
-              {console.log("dashboardData in Recent Form section:", dashboardData)}
-              {dashboardData && dashboardData.recent && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Recent Form</p>
-                  <div className="flex space-x-1.5">
-                    {dashboardData.recent.map((result, index) => {
-                      const resultColor = 
-                        result === 'W' ? 'bg-emerald-500' :
-                        result === 'L' ? 'bg-rose-500' : 'bg-amber-500';
-                      
-                      return (
-                        <span 
-                          key={index}
-                          className={`${resultColor} min-w-7 h-7 flex items-center justify-center text-white font-medium rounded-md`}
-                        >
-                          {result}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-muted/50">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Opponent</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Result</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Score</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Possession</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Pass Acc.</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {recentMatchesData.slice(0, 5).map((match) => (
-                    <tr key={match.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{match.date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{match.opponent}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span 
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            match.result === 'Win' 
-                              ? 'bg-emerald-100 text-emerald-800' 
-                              : match.result === 'Loss' 
-                                ? 'bg-rose-100 text-rose-800' 
-                                : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          {match.result}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{match.score}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{match.possession}%</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{match.passAccuracy}%</td>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-muted/50">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Opponent</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Result</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Score</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Possession</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Pass Acc.</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                  {dashboardData && dashboardData.results.data ? (
+                      dashboardData.results.data.slice(0, 5).map((match) => (
+                          <tr key={match.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{match.created_at}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{match.away_team.name}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                      match.result === 'Win'
+                                          ? 'bg-emerald-100 text-emerald-800'
+                                          : match.result === 'Loss'
+                                              ? 'bg-rose-100 text-rose-800'
+                                              : 'bg-amber-100 text-amber-800'
+                                  }`}
+                              >
+                                {match.result}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{match.score}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{match.possession}%</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{match.passAccuracy}%</td>
+                          </tr>
+                      ))
+                  ) : (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                          No match data available
+                        </td>
+                      </tr>
+                  )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
       <Footer />
