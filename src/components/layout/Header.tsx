@@ -47,7 +47,7 @@ const Header = () => {
           className="text-xl font-bold tracking-tighter relative overflow-hidden group"
         >
           <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            StatTracker<span className="text-foreground">FC</span>
+            Pro Clubs Companion<span className="text-foreground"> FC</span>
           </span>
           <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
         </Link>

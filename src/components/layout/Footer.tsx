@@ -12,7 +12,7 @@ const Footer = () => {
           <div className="space-y-4">
             <Link to="/" className="text-xl font-bold tracking-tighter">
               <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                StatTracker<span className="text-foreground">FC</span>
+                Pro Clubs Companion<span className="text-foreground"> FC</span>
               </span>
             </Link>
             <p className="text-muted-foreground text-sm">
@@ -81,7 +81,7 @@ const Footer = () => {
         
         <div className="mt-12 pt-8 border-t border-border/40 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © {year} StatTrackerFC. All rights reserved.
+            © {year} Pro Clubs Companion. All rights reserved.
           </p>
           
           <div className="mt-4 md:mt-0 flex items-center space-x-4">

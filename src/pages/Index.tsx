@@ -20,7 +20,7 @@ const Index = () => {
               Ready to elevate your Pro Clubs performance?
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of Pro Clubs players who are using StatTrackerFC to improve their game and climb the ranks.
+              Join thousands of Pro Clubs players who are using Pro Clubs Companion to improve their game and climb the ranks.
             </p>
             <a 
               href="/dashboard" 
